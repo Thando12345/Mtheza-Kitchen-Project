@@ -1,0 +1,27 @@
+/* src/components/LandingPage.css */
+.food-images-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+  }
+  
+  .food-image {
+    width: 150px;
+    height: 150px;
+    margin: 10px;
+    object-fit: cover;
+  }
+  
+  .footer {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .social-links img {
+    width: 30px;
+    height: 30px;
+    margin: 0 5px;
+  }
+  
