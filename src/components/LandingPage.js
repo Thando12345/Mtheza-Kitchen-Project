@@ -1,4 +1,3 @@
-// src/components/LandingPage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -16,6 +15,7 @@ const LandingPage = ({ placeOrder }) => {
     address: '',
     phoneNumber: '',
   });
+  const [foodImages, setFoodImages] = useState(initialFoodImages);
 
   const generateSessionId = () => {
     return Math.random().toString(36).substring(7);
@@ -29,10 +29,11 @@ const LandingPage = ({ placeOrder }) => {
     if (paymentOption === 'PayOnDelivery') {
       setShowDeliveryForm(true);
     } else {
-      axios.post('/api/orders/place-order', {
-        selectedStore,
-        sessionId: generateSessionId(),
-      })
+      axios
+        .post('/api/orders/place-order', {
+          selectedStore,
+          sessionId: generateSessionId(),
+        })
         .then((response) => {
           console.log(response.data);
         })
@@ -43,11 +44,12 @@ const LandingPage = ({ placeOrder }) => {
   };
 
   const handleAddDeliveryAddress = () => {
-    axios.post('/api/notifications/send-notification', {
-      name: deliveryAddress.name,
-      address: deliveryAddress.address,
-      phoneNumber: deliveryAddress.phoneNumber,
-    })
+    axios
+      .post('/api/notifications/send-notification', {
+        name: deliveryAddress.name,
+        address: deliveryAddress.address,
+        phoneNumber: deliveryAddress.phoneNumber,
+      })
       .then((response) => {
         console.log(response.data);
       })
@@ -62,6 +64,46 @@ const LandingPage = ({ placeOrder }) => {
     setPaymentOption(e.target.value);
   };
 
+  const handleZoom = (zoomType, imageId) => {
+    const zoomFactor = zoomType === 'in' ? 0.1 : -0.1;
+    const updatedFoodImages = foodImages.map((image) =>
+      image.id === imageId
+        ? { ...image, zoomLevel: (image.zoomLevel || 1) + zoomFactor }
+        : image
+    );
+
+    setFoodImages(updatedFoodImages);
+  };
+
+  const renderFoodImages = () => {
+    return foodImages.map((image) => (
+      <div key={image.id} className="food-image-container">
+        <img
+          src={image.url}
+          alt={`Food ${image.id}`}
+          className="food-image"
+          onClick={() => handleClick(image.id)}
+          style={{ transform: `scale(${image.zoomLevel || 1})` }}
+        />
+        <div className="image-overlay">
+          <p>{image.description}</p>
+          <p>{image.price}</p>
+        </div>
+        <div className="zoom-buttons">
+          <button onClick={() => handleZoom('in', image.id)}>+</button>
+          <button onClick={() => handleZoom('out', image.id)}>-</button>
+        </div>
+      </div>
+    ));
+  };
+
+  const handleClick = (imageId) => {
+    const selectedImage = foodImages.find((image) => image.id === imageId);
+    console.log(
+      `Clicked on image ${imageId}: ${selectedImage.description}, Price: ${selectedImage.price}`
+    );
+  };
+
   return (
     <div>
       <h1>Mthezas Kitchen</h1>
@@ -71,9 +113,7 @@ const LandingPage = ({ placeOrder }) => {
           <button onClick={() => setUserSession(null)}>Logout</button>
         </div>
       ) : (
-        <button onClick={() => setUserSession({ username: 'Thando Nogemanene' })}>
-          Login
-        </button>
+        <button onClick={() => setUserSession({ username: 'Thando Nogemanene' })}>Login</button>
       )}
       <button onClick={handlePlaceOrder}>Place Order</button>
       {selectedStore && (
@@ -133,7 +173,10 @@ const LandingPage = ({ placeOrder }) => {
                 type="text"
                 value={deliveryAddress.phoneNumber}
                 onChange={(e) =>
-                  setDeliveryAddress({ ...deliveryAddress, phoneNumber: e.target.value })
+                  setDeliveryAddress({
+                    ...deliveryAddress,
+                    phoneNumber: e.target.value,
+                  })
                 }
               />
             </label>
@@ -155,20 +198,11 @@ const LandingPage = ({ placeOrder }) => {
   );
 };
 
-const renderFoodImages = () => {
-  const foodImages = Array.from({ length: 20 }, (_, index) => ({
-    id: index + 1,
-    url: `/images/food${index + 1}.jpeg`,
-  }));
-
-  return foodImages.map((image) => (
-    <img
-      key={image.id}
-      src={image.url}
-      alt={`Food ${image.id}`}
-      className="food-image"
-    />
-  ));
-};
+const initialFoodImages = Array.from({ length: 20 }, (_, index) => ({
+  id: index + 1,
+  url: `/images/food${index + 1}.jpeg`,
+  description: `Description ${index + 1}`,
+  price: `$${(index + 1) * 5}`, // Replace with actual pricing logic
+}));
 
 export default LandingPage;
